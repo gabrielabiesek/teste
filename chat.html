@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Entertainment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Cabeçalho com avatar e nome -->
+        <div class="chat-header">
+            <div class="header-left">
+                <img src="thalia.jpg" alt="Avatar" class="avatar">
+                <div class="contact-info">
+                    <div class="contact-name">@thailacasl</div>
+                    <div class="contact-status">online</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <!-- ícones/ações -->
+                <button class="btn">...</button>
+            </div>
+        </div>
+
+        <!-- Área de Mensagens (rolável) -->
+        <div class="message-area" id="message-area" role="log" aria-live="polite">
+            <!-- Exemplo de separador de data -->
+            <div class="date-separator">Hoje</div>
+
+            <!-- Mensagens de exemplo -->
+            <div class="message received" data-id="1">
+                <div class="bubble">
+                    <div class="replied" hidden>
+                        <!-- texto da mensagem respondida será inserido aqui -->
+                    </div>
+                    <p>Olá! Como você está?</p>
+                    <div class="meta"><span class="time">10:12</span></div>
+                </div>
+            </div>
+
+            <div class="message sent" data-id="2">
+                <div class="bubble">
+                    <div class="replied" hidden></div>
+                    <p>Estou bem, e você?</p>
+                    <div class="meta"><span class="time">10:13</span><span class="status">✓✓</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview de resposta (quando o usuário está respondendo a uma mensagem) -->
+        <div class="reply-preview" id="reply-preview" hidden>
+            <div class="reply-info">
+                <strong>Respondendo a</strong>
+                <div class="reply-text" id="reply-text"></div>
+            </div>
+            <button id="cancel-reply" aria-label="Cancelar resposta">✕</button>
+        </div>
+
+        <!-- Área de entrada com botão de enviar, emoji e anexos -->
+        <div class="chat-input-area" aria-label="Enviar mensagem">
+            <label for="file-input" class="attach-btn" title="Anexar foto">📷
+                <input type="file" id="file-input" accept="image/*" hidden>
+            </label>
+            <button id="emoji-button" class="emoji-btn" title="Emoji">😊</button>
+            <textarea id="message-input" placeholder="Escreva uma mensagem..." rows="1" aria-label="Mensagem"></textarea>
+            <button id="send-button" class="send-btn" aria-label="Enviar">Enviar</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+    // Funcionalidade básica de envio e resposta (citar) - complementar ao script.js
+    (function () {
+        const messageArea = document.getElementById('message-area');
+        const input = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const replyPreview = document.getElementById('reply-preview');
+        const replyTextEl = document.getElementById('reply-text');
+        const cancelReply = document.getElementById('cancel-reply');
+
+        let currentReply = null; // guarda texto da mensagem sendo respondida
+
+        // Enviar mensagem
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+
+            const msg = document.createElement('div');
+            msg.className = 'message sent';
+            msg.dataset.id = Date.now();
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+
+            if (currentReply) {
+                const replied = document.createElement('div');
+                replied.className = 'replied';
+                replied.textContent = currentReply;
+                replied.hidden = false;
+                bubble.appendChild(replied);
+            }
+
+            const p = document.createElement('p');
+            p.textContent = text;
+            bubble.appendChild(p);
+
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            meta.innerHTML = `<span class="time">${hh}:${mm}</span><span class="status">✓✓</span>`;
+            bubble.appendChild(meta);
+
+            msg.appendChild(bubble);
+            messageArea.appendChild(msg);
+
+            // limpar input e estado de resposta
+            input.value = '';
+            clearReply();
+
+            scrollToBottom();
+        }
+
+        // Scroll para o final
+        function scrollToBottom() {
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+
+        // Ativa modo resposta ao clicar em uma mensagem
+        messageArea.addEventListener('click', (e) => {
+            const messageEl = e.target.closest('.message');
+            if (!messageEl) return;
+            // pegar texto da bolha clicada
+            const bubbleP = messageEl.querySelector('.bubble > p');
+            if (!bubbleP) return;
+            currentReply = bubbleP.textContent;
+            replyTextEl.textContent = currentReply.length > 80 ? currentReply.slice(0,80) + '…' : currentReply;
+            replyPreview.hidden = false;
+            input.focus();
+        });
+
+        // Cancela resposta
+        cancelReply.addEventListener('click', () => {
+            clearReply();
+            input.focus();
+        });
+
+        function clearReply() {
+            currentReply = null;
+            replyTextEl.textContent = '';
+            replyPreview.hidden = true;
+        }
+
+        // Enviar ao clicar
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enter para enviar, Shift+Enter para nova linha
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Inicial scroll
+        scrollToBottom();
+    })();
+    </script>
+</body>
+</html>
+
+
+
